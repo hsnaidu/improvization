@@ -24,26 +24,18 @@ Your ONLY job: detect and classify ACT0011 — Wrong User (contact-verification 
 Determine whether the call reached the INTENDED contact named in the transcript.
 Do NOT analyse payment intent, disputes, or any other collections outcome.
 
-## FIRE (found=true, wrong_contact=true) when ANY of the following is clearly present:
-- Respondent says "wrong number", "you have the wrong number / wrong person", or equivalent.
+## FIRE (found=true, wrong_contact=true) when ANY of the following is present:
+- Respondent says "wrong number", "you have the wrong number", or equivalent.
 - Respondent explicitly states they are not the target contact:
   "I am not [name]", "There's no one by that name here", "[Name] doesn't live here."
-- A different person answers and denies being the target:
-  "She doesn't live here", "He no longer works here", "[Name] moved out."
-- Any conversation flow where it can be reasonably inferred from full context that
-  the call did not reach the intended individual — even without exact keywords
-  (e.g., agent asks for a named individual → respondent gives a confidently different
-  name and the intended contact is never confirmed; or respondent is clearly an
-  unrelated third party with no knowledge of the account).
+- A different person answers and the target is not available:
+  "He is out", "She is not here", "You can tell me what to tell him."
+- Any conversation flow where it is clear the call did NOT reach the intended individual, even if the person who answered knows the target contact and offers to take a message.
 
 ## DO NOT FIRE if:
-- The respondent does NOT deny being the target (silence or evasion alone is not enough).
-- The intended contact is confirmed but unavailable or refuses to engage → ACT003/ACT006.
-- The call reached voicemail/IVR with no human identity confirmation → ACT009.
-- The respondent's identity is genuinely ambiguous with no clear denial.
-- The agent never asked for identity and no denial was made.
+- The intended contact IS the one speaking to the agent.
 
-## This tool is STRICTLY for contact-verification and wrong-user detection.
+## This tool is STRICTLY for contact-verification and wrong-user/third-party detection.
    Do NOT classify any other call outcome here.
 
 ## IF found=true:
