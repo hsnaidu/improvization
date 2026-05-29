@@ -340,34 +340,61 @@ async def process_transcript_and_update_json(call_data: dict) -> dict:
         if isinstance(res, Exception):
             print(f"[postcallagent] {act_id} tool raised an exception: {res}")
 
-    # ACT0011: Wrong User — evaluated first so it is never overridden by
-    # voice_mail or call_abrupt flags below.
-    wrong_user_detected = (
-        isinstance(act0011_result, dict)
-        and act0011_result.get("wrong_contact") is True
-    )
-    if "call_data" in call_data and wrong_user_detected:
-        call_data["call_data"]["wrong_contact"]   = True
-        call_data["call_data"]["call_status"]     = False
-        call_data["call_data"]["failure_message"] = "Wrong Contact"
+    # ---------------------------------------------------------------------------
+    # Process Call Status and Failure Message Aggregation
+    # ---------------------------------------------------------------------------
+    if "call_data" in call_data:
+        wrong_user_detected = (
+            isinstance(act0011_result, dict)
+            and act0011_result.get("wrong_contact") is True
+        )
+        if wrong_user_detected:
+            call_data["call_data"]["wrong_contact"] = True
+            call_data["call_data"]["call_status"] = False
 
-    # Set voice_mail flag based on ACT009 detection.
-    # NOTE: Do NOT override call_status here — it's already set by Twilio/caller
-    # based on actual call outcome, or by ACT0011 above.
-    voice_mail_detected = (
-        isinstance(act009_result, dict)
-        and act009_result.get("found", False)
-    )
-    if "call_data" in call_data and voice_mail_detected:
-        call_data["call_data"]["voice_mail"] = True
+        voice_mail_detected = (
+            isinstance(act009_result, dict)
+            and act009_result.get("found", False)
+        )
+        if voice_mail_detected:
+            call_data["call_data"]["voice_mail"] = True
 
-    # Set call_abrupt flag based on ACT0010 detection.
-    call_abrupt_detected = (
-        isinstance(act0010_result, dict)
-        and act0010_result.get("call_abrupt", False)
-    )
-    if "call_data" in call_data and call_abrupt_detected:
-        call_data["call_data"]["call_abrupt"] = True
+        call_abrupt_detected = (
+            isinstance(act0010_result, dict)
+            and act0010_result.get("call_abrupt", False)
+        )
+        if call_abrupt_detected:
+            call_data["call_data"]["call_abrupt"] = True
+
+        # Build list of unique failure reasons
+        reasons = []
+        
+        # Start with any existing failure message (e.g., from Twilio or base caller)
+        existing_msg = call_data["call_data"].get("failure_message") or ""
+        if existing_msg:
+            for part in [p.strip() for p in existing_msg.split(",") if p.strip()]:
+                if part not in reasons:
+                    reasons.append(part)
+
+        # Add detected postcall reasons
+        if call_data["call_data"].get("wrong_contact") is True:
+            if "Wrong Contact" not in reasons:
+                reasons.append("Wrong Contact")
+
+        if call_data["call_data"].get("call_abrupt") is True:
+            # Check if there is already an abrupt string, e.g. "Call disconnected abruptly"
+            has_abrupt = any("abrupt" in r.lower() for r in reasons)
+            if not has_abrupt:
+                reasons.append("Call disconnected abruptly")
+
+        if call_data["call_data"].get("voice_mail") is True:
+            has_vm = any("voice-mail" in r.lower() or "voicemail" in r.lower() for r in reasons)
+            if not has_vm:
+                reasons.append("Voice-mail: Could not connect to Customer")
+
+        # Join unique reasons with a comma
+        if reasons:
+            call_data["call_data"]["failure_message"] = ", ".join(reasons)
 
     # ACT006 goes first (business rule: doubtful receivable leads the list)
     actions: list[dict] = []
