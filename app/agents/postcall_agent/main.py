@@ -208,7 +208,16 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
 from ._base import TokenUsageCallback, build_llm, HUMAN_TEMPLATE
-from app.caller_features.open_telemetry import call_span, record_token_usage
+try:
+    from app.caller_features.open_telemetry import call_span, record_token_usage
+except ImportError:
+    # Local/test environment fallback stubs
+    def call_span(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    def record_token_usage(*args, **kwargs):
+        pass
 from .tools import (
     act001_promise_to_pay,
     act002_escalation,

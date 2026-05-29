@@ -38,14 +38,14 @@ Do NOT analyse payment intent, disputes, or any other collections outcome.
 ## This tool is STRICTLY for contact-verification and wrong-user/third-party detection.
    Do NOT classify any other call outcome here.
 
-## IF found=true:
-- Set wrong_contact = true
-- description: one sentence summarising how the mismatch was identified.
-- notes: any additional context from the transcript relevant to contact verification.
+## If found=true:
+  * Set wrong_contact=true
+  * Provide description: one sentence summarising how the contact mismatch was identified.
+  * Provide notes: any additional context from the transcript relevant to contact verification.
 
-## IF found=false:
-- wrong_contact = false, all other fields null.
-- Do NOT speculate or fire on vague or inconclusive signals."""
+## If criteria not met → found=false, wrong_contact=false, description=null, notes=null.
+- Do NOT speculate or fire on vague or inconclusive signals.
+- If the customer confirms they are the correct contact, set found=false."""
 
 _OUTPUT_FIELDS = [
     "action_id",
