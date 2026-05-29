@@ -8,11 +8,10 @@ from .._base import BaseActionResult, run_tool
 
 class ACT0011Result(BaseActionResult):
     action_id: str = Field(default="ACT0011")
-    action_type: str = Field(default="Wrong User")
+    action_type: str = Field(default="Wrong Contact")
     wrong_contact: bool = Field(default=False)
-    notes: Optional[str] = None
+    notes: str = Field(default="")
     description: Optional[str] = None
-    agent_action_item: Optional[str] = None
 
 # ---------------------------------------------------------------------------
 # Specialist system prompt
@@ -50,9 +49,6 @@ Do NOT analyse payment intent, disputes, or any other collections outcome.
 ## IF found=true:
 - Set wrong_contact = true
 - description: one sentence summarising how the mismatch was identified.
-- agent_action_item: concise recommended follow-up for the collections agent
-  (e.g., "Verify correct phone number in CRM, update contact record, and retry
-  outreach using alternative contact information.").
 - notes: any additional context from the transcript relevant to contact verification.
 
 ## IF found=false:
@@ -64,10 +60,9 @@ _OUTPUT_FIELDS = [
     "action_type",
     "wrong_contact",
     "notes",
-    "description",
-    "agent_action_item",
+    "description"
 ]
-_DEFAULTS: dict = {}
+_DEFAULTS = {"notes": ""}
 
 # ---------------------------------------------------------------------------
 # Public runner

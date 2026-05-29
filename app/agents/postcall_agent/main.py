@@ -220,7 +220,7 @@ from .tools import (
     act008_other_request,
     act009_voice_mail,
     act0010_abrupt_call,
-    act0011_wrong_user,
+    act0011_wrong_contact,
 )
 
 load_dotenv()
@@ -308,7 +308,7 @@ async def process_transcript_and_update_json(call_data: dict) -> dict:
         act008_other_request.run(user_name, transcript),
         act009_voice_mail.run(user_name, transcript),
         act0010_abrupt_call.run(user_name, transcript),
-        act0011_wrong_user.run(user_name, transcript),
+        act0011_wrong_contact.run(user_name, transcript),
         _run_meta_analysis(user_name, transcript, token_cb),
         return_exceptions=True,  # one tool failure must not kill all others
     )
@@ -338,6 +338,7 @@ async def process_transcript_and_update_json(call_data: dict) -> dict:
         and act0011_result.get("wrong_contact") is True
     )
     if "call_data" in call_data and wrong_user_detected:
+        call_data["call_data"]["wrong_contact"]   = True
         call_data["call_data"]["call_status"]     = False
         call_data["call_data"]["failure_message"] = "Wrong Contact"
 
